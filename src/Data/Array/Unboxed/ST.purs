@@ -15,6 +15,8 @@ module Data.Array.Unboxed.ST
 
   , STUnboxedFloat64Array
 
+  , STUnboxedComplex128Array
+
   , STUnboxedTupleArray
   , zip
   , unzip
@@ -22,6 +24,7 @@ module Data.Array.Unboxed.ST
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.ST (ST)
+import Data.Complex (Complex(..))
 import Data.Function.Uncurried (Fn1, Fn2, Fn3, mkFn2, mkFn3, runFn2, runFn3)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
@@ -76,13 +79,14 @@ slice
   -> as r
   -> Maybe (STUnboxedArraySlice as r)
 slice start length' base
-  | length base - length' - start > 0 = Just (STUnboxedArraySlice start length' base)
+  | length base - (length' `max` 0) - start > 0 =
+      Just (STUnboxedArraySlice start (length' `max` 0) base)
   | otherwise = Nothing
 
 instance stUnboxedArraySTUnboxedArraySlice :: (STUnboxedArray as a) => STUnboxedArray (STUnboxedArraySlice as) a where
   new = mkFn2 \length' value -> do
     array <- runFn2 new length' value
-    pure $ STUnboxedArraySlice 0 length' array
+    pure $ STUnboxedArraySlice 0 (length' `max` 0) array
   length (STUnboxedArraySlice _ length' _) =
     length'
   unsafePeek = mkFn2 \index (STUnboxedArraySlice start _ base) ->
@@ -121,6 +125,32 @@ foreign import newSTUnboxedFloat64Array :: ∀ r e. Fn2 Int Number (Eff (st :: S
 foreign import lengthSTUnboxedFloat64Array :: ∀ r. Fn1 (STUnboxedFloat64Array r) Int
 foreign import unsafePeekSTUnboxedFloat64Array :: ∀ r e. Fn2 Int (STUnboxedFloat64Array r) (Eff (st :: ST r | e) Number)
 foreign import unsafePokeSTUnboxedFloat64Array :: ∀ r e. Fn3 Int Number (STUnboxedFloat64Array r) (Eff (st :: ST r | e) Unit)
+
+--------------------------------------------------------------------------------
+
+-- | An array of unboxed 128-bit complex floating point numbers.
+newtype STUnboxedComplex128Array r =
+  STUnboxedComplex128Array (STUnboxedFloat64Array r)
+
+instance stUnboxedArraySTUnboxedComplex128Array :: STUnboxedArray STUnboxedComplex128Array Complex where
+  new = mkFn2 \length' (Complex real imag) ->
+    if real == 0.0 && imag == 0.0
+      then do base <- runFn2 new (length' * 2) 0.0
+              pure $ STUnboxedComplex128Array base
+      else do base <- runFn2 new (length' * 2) real
+              runFn3 fillImag length' imag base
+              pure $ STUnboxedComplex128Array base
+  length (STUnboxedComplex128Array base) =
+    length base / 2
+  unsafePeek = mkFn2 \index (STUnboxedComplex128Array base) -> do
+    real <- runFn2 unsafePeek (index * 2 + 0) base
+    imag <- runFn2 unsafePeek (index * 2 + 1) base
+    pure $ Complex real imag
+  unsafePoke = mkFn3 \index (Complex real imag) (STUnboxedComplex128Array base) -> do
+    runFn3 unsafePoke (index * 2 + 0) real base
+    runFn3 unsafePoke (index * 2 + 1) imag base
+
+foreign import fillImag :: ∀ r e. Fn3 Int Number (STUnboxedFloat64Array r) (Eff (st :: ST r | e) Unit)
 
 --------------------------------------------------------------------------------
 
