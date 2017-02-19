@@ -2,10 +2,7 @@
 
 //----------------------------------------------------------------------------//
 
-exports.newSTUnboxedInt32Array = function(length, value) {
-  if (length < 0) {
-    length = 0;
-  }
+exports.unsafeNewSTUnboxedInt32Array = function(length, value) {
   if (value === 0) {
     return function() {
       return new Int32Array(length);
@@ -37,10 +34,7 @@ exports.unsafePokeSTUnboxedInt32Array = function(index, value, array) {
 
 //----------------------------------------------------------------------------//
 
-exports.newSTUnboxedFloat64Array = function(length, value) {
-  if (length < 0) {
-    length = 0;
-  }
+exports.unsafeNewSTUnboxedFloat64Array = function(length, value) {
   if (value === 0.0) {
     return function() {
       return new Float64Array(length);
@@ -73,7 +67,9 @@ exports.unsafePokeSTUnboxedFloat64Array = function(index, value, array) {
 //----------------------------------------------------------------------------//
 
 exports.fillImag = function(length, imag, base) {
-  for (var i = 0; i < length; ++i) {
-    base[i * 2 + 1] = imag;
-  }
+  return function() {
+    for (var i = 0; i < length; ++i) {
+      base[i * 2 + 1] = imag;
+    }
+  };
 };
