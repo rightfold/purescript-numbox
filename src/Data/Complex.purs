@@ -1,5 +1,7 @@
 module Data.Complex
   ( Complex(..)
+  , real
+  , imag
   ) where
 
 import Prelude
@@ -22,5 +24,13 @@ instance ringComplex :: Ring Complex where
     Complex (real1 - real2) (imag1 - imag2)
 
 instance showComplex :: Show Complex where
-  show (Complex real imag) =
-    "(Complex " <> show real <> " " <> show imag <> ")"
+  show (Complex real' imag') =
+    "(Complex " <> show real' <> " " <> show imag' <> ")"
+
+-- | Extract the real part of a complex number.
+real :: Complex -> Number
+real (Complex real' _) = real'
+
+-- | Extract the imaginary part of a complex number.
+imag :: Complex -> Number
+imag (Complex _ imag') = imag'
