@@ -6,6 +6,7 @@ module Data.Complex
 
 import Prelude
 
+-- | A complex number.
 data Complex = Complex Number Number
 
 derive instance eqComplex :: Eq Complex
