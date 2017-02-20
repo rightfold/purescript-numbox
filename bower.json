@@ -1,5 +1,10 @@
 {
   "name": "purescript-numbox",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rightfold/purescript-numbox.git"
+  },
   "dependencies": {
     "purescript-st": "^2.0.0",
     "purescript-eff": "^2.0.0",
