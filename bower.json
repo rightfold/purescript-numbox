@@ -11,6 +11,10 @@
   "devDependencies": {
     "purescript-test-unit": "^10.1.0",
     "purescript-foldable-traversable": "^2.2.0",
-    "purescript-arrays": "^3.2.1"
+    "purescript-arrays": "^3.2.1",
+    "purescript-eff": "^2.0.0",
+    "purescript-maybe": "^2.0.1",
+    "purescript-prelude": "^2.4.0",
+    "purescript-tuples": "^3.1.0"
   }
 }
