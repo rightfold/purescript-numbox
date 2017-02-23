@@ -4,7 +4,7 @@ module Test.Data.Array.Unboxed.ST
 
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
-import Data.Array.Unboxed.ST (class STUnboxedArray, STUnboxedComplex128Array, STUnboxedFloat64Array, STUnboxedInt32Array, STUnboxedTupleArray, new, peek, poke)
+import Data.Array.Unboxed.ST (class STUnboxedArray, STUnboxedComplex128Array, STUnboxedFloat64Array, STUnboxedInt32Array, STUnboxedTupleArray, lockstep, new, peek, poke)
 import Data.Complex (Complex(..))
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
@@ -32,6 +32,12 @@ main = suite "Data.Array.Unboxed.ST" do
                 "STUnboxedTupleArray"
                 (Tuple 1 2.0)
                 (\(Tuple a b) -> Tuple (a + 1) (b + 1.0))
+
+  test "lockstep" do
+    (as :: STUnboxedInt32Array _) <- liftEff $ new 10 5
+    (bs :: STUnboxedInt32Array _) <- liftEff $ new 15 8
+    liftEff $ lockstep (+) as bs as
+    Assert.equal (Just 13) =<< liftEff (peek 0 as)
   where
   instanceSuite
     :: ∀ as a

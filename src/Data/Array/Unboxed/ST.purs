@@ -21,6 +21,8 @@ module Data.Array.Unboxed.ST
   , STUnboxedTupleArray
   , zip
   , unzip
+
+  , lockstep
   ) where
 
 import Control.Monad.Eff (Eff)
@@ -202,3 +204,33 @@ unzip
    . STUnboxedTupleArray as bs a b r
   -> Tuple (as r) (bs r)
 unzip (STUnboxedTupleArray as bs) = Tuple as bs
+
+--------------------------------------------------------------------------------
+
+-- | *Ω(min(n, m, l))* Perform an operation on multiple arrays at once.
+lockstep
+  :: ∀ as a bs b cs c r e
+   . ( STUnboxedArray as a
+     , STUnboxedArray bs b
+     , STUnboxedArray cs c
+     )
+  => (a -> b -> c)
+  -> as r
+  -> bs r
+  -> cs r
+  -> Eff (st :: ST r | e) Unit
+lockstep f as bs cs =
+  lockstep' unsafePeek unsafePeek unsafePoke f as bs cs
+            (length as `min` length bs `min` length cs)
+
+foreign import lockstep'
+  :: ∀ as bs cs a b c r e
+   . Fn2 Int as (Eff (st :: ST r | e) a)
+  -> Fn2 Int bs (Eff (st :: ST r | e) b)
+  -> Fn3 Int c cs (Eff (st :: ST r | e) Unit)
+  -> (a -> b -> c)
+  -> as
+  -> bs
+  -> cs
+  -> Int
+  -> Eff (st :: ST r | e) Unit

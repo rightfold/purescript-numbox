@@ -73,3 +73,29 @@ exports.fillImag = function(length, imag, base) {
     }
   };
 };
+
+//----------------------------------------------------------------------------//
+
+exports['lockstep\''] = function(peekAs) {
+  return function(peekBs) {
+    return function(pokeCs) {
+      return function(f) {
+        return function(as) {
+          return function(bs) {
+            return function(cs) {
+              return function(length) {
+                return function() {
+                  for (var i = 0; i < length; ++i) {
+                    var a = peekAs(i, as)();
+                    var b = peekBs(i, bs)();
+                    pokeCs(i, f(a)(b), cs)();
+                  }
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+};
