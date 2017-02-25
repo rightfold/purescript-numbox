@@ -1,18 +1,18 @@
-module Test.Data.FFT
+module Test.Data.Signal.Decomposition
   ( main
   ) where
 
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array.Unboxed.ST (new, peek, poke)
 import Data.Complex (Complex(..))
-import Data.FFT (fft64)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Ord (abs)
+import Data.Signal.Decomposition (fft64)
 import Prelude
 import Test.Unit (test)
 import Test.Unit.Assert as Assert
 
-main = test "Data.FFT" do
+main = test "Data.Signal.Decomposition" do
   input  <- liftEff $ new 8 0.0
   output <- liftEff $ new 8 (Complex 0.0 0.0)
 

@@ -1,4 +1,5 @@
-module Data.FFT
+-- | Signal decomposition functions.
+module Data.Signal.Decomposition
   ( fft64
   ) where
 
