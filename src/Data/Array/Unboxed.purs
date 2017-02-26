@@ -5,6 +5,7 @@ module Data.Array.Unboxed
   , fill
 
   , foldl
+  , foldr
 
   , index
   , (!!)
@@ -53,6 +54,19 @@ foreign import foldl'
    . Fn2 Int (as r) (Eff (st :: ST r | e) a)
   -> Int
   -> (z -> a -> z)
+  -> z
+  -> as r
+  -> z
+
+foldr :: ∀ as a z. (STUnboxedArray as a) => (a -> z -> z) -> z -> UnboxedArray as a -> z
+foldr f z xs = foldr' ST.unsafePeek (ST.length xs') f z xs'
+  where xs' = (unsafeCoerce :: UnboxedArray as a -> as _) xs
+
+foreign import foldr'
+  :: ∀ as a r e z
+   . Fn2 Int (as r) (Eff (st :: ST r | e) a)
+  -> Int
+  -> (a -> z -> z)
   -> z
   -> as r
   -> z
