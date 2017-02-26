@@ -4,6 +4,8 @@ module Data.Array.Unboxed
   , build
   , fill
 
+  , foldl
+
   , index
   , (!!)
   ) where
@@ -12,6 +14,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.ST (ST, pureST)
 import Data.Array.Unboxed.ST (class STUnboxedArray)
 import Data.Array.Unboxed.ST as ST
+import Data.Function.Uncurried (Fn2)
 import Data.Maybe (Maybe)
 import Prelude
 import Unsafe.Coerce (unsafeCoerce)
@@ -38,6 +41,21 @@ build go = pureST do
 -- | certain value.
 fill :: ∀ as a. (STUnboxedArray as a) => Int -> a -> UnboxedArray as a
 fill length value = build (ST.new length value)
+
+--------------------------------------------------------------------------------
+
+foldl :: ∀ as a z. (STUnboxedArray as a) => (z -> a -> z) -> z -> UnboxedArray as a -> z
+foldl f z xs = foldl' ST.unsafePeek (ST.length xs') f z xs'
+  where xs' = (unsafeCoerce :: UnboxedArray as a -> as _) xs
+
+foreign import foldl'
+  :: ∀ as a r e z
+   . Fn2 Int (as r) (Eff (st :: ST r | e) a)
+  -> Int
+  -> (z -> a -> z)
+  -> z
+  -> as r
+  -> z
 
 --------------------------------------------------------------------------------
 
