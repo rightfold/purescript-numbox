@@ -3,7 +3,7 @@ module Test.Data.Array.Unboxed
   ) where
 
 import Control.Monad.Eff.Class (liftEff)
-import Data.Array.Unboxed (build, foldl, foldr)
+import Data.Array.Unboxed (UnboxedArray, build, fill, foldl, foldr)
 import Data.Array.Unboxed.ST (STUnboxedInt32Array)
 import Data.Array.Unboxed.ST as ST
 import Prelude
@@ -11,6 +11,11 @@ import Test.Unit (suite, test)
 import Test.Unit.Assert as Assert
 
 main = suite "Data.Array.Unboxed.ST" do
+  test "fill" do
+    let xs = fill 10 4 :: UnboxedArray STUnboxedInt32Array Int
+    let x = foldl (\a b -> a && b == 4) true xs
+    Assert.equal true x
+
   test "foldl" do
     let xs = build do
           (xs' :: STUnboxedInt32Array _) <- ST.new 4 0
