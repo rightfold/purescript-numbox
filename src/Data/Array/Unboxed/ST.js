@@ -16,6 +16,12 @@ exports.unsafeNewSTUnboxedInt32Array = function(length, value) {
   }
 };
 
+exports.cloneSTUnboxedInt32Array = function(array) {
+  return function() {
+    return array.slice();
+  };
+};
+
 exports.lengthSTUnboxedInt32Array = function(array) {
   return array.length;
 };
@@ -46,6 +52,12 @@ exports.unsafeNewSTUnboxedFloat64Array = function(length, value) {
       return array;
     };
   }
+};
+
+exports.cloneSTUnboxedFloat64Array = function(array) {
+  return function() {
+    return array.slice();
+  };
 };
 
 exports.lengthSTUnboxedFloat64Array = function(array) {

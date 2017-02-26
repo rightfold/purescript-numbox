@@ -4,7 +4,7 @@ module Test.Data.Array.Unboxed.ST
 
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
-import Data.Array.Unboxed.ST (class STUnboxedArray, STUnboxedComplex128Array, STUnboxedFloat64Array, STUnboxedInt32Array, STUnboxedTupleArray, lockstep, new, peek, poke)
+import Data.Array.Unboxed.ST (class STUnboxedArray, STUnboxedComplex128Array, STUnboxedFloat64Array, STUnboxedInt32Array, STUnboxedTupleArray, clone, lockstep, new, peek, poke)
 import Data.Complex (Complex(..))
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
@@ -63,3 +63,8 @@ main = suite "Data.Array.Unboxed.ST" do
         liftEff $ poke i (transform value) array
         value' <- liftEff $ peek i array
         Assert.equal (Just (transform value)) value'
+    test "clone" do
+      (array :: as _) <- liftEff $ new 1 value
+      array' <- liftEff $ clone array
+      liftEff $ poke 0 (transform value) array
+      Assert.equal (Just value) =<< liftEff (peek 0 array')

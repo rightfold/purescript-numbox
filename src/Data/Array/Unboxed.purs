@@ -4,6 +4,9 @@ module Data.Array.Unboxed
   , build
   , fill
 
+  , freeze
+  , thaw
+
   , foldl
   , foldr
 
@@ -42,6 +45,28 @@ build go = pureST do
 -- | certain value.
 fill :: ∀ as a. (STUnboxedArray as a) => Int -> a -> UnboxedArray as a
 fill length value = build (ST.new length value)
+
+--------------------------------------------------------------------------------
+
+-- | *Θ(n)* Freeze a mutable array by copying it.
+freeze
+  :: ∀ as a r e
+   . (STUnboxedArray as a)
+  => as r
+  -> Eff (st :: ST r | e) (UnboxedArray as a)
+freeze as = do
+  as' <- ST.clone as
+  pure $ (unsafeCoerce :: as r -> UnboxedArray as a) as'
+
+-- | *Θ(n)* Thaw an immutable array by copying it.
+thaw
+  :: ∀ as a r e
+   . (STUnboxedArray as a)
+  => UnboxedArray as a
+  -> Eff (st :: ST r | e) (as r)
+thaw as = do
+  let as' = (unsafeCoerce :: UnboxedArray as a -> as r) as
+  ST.clone as'
 
 --------------------------------------------------------------------------------
 

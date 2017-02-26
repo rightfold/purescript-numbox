@@ -2,6 +2,7 @@
 module Data.Array.Unboxed.ST
   ( class STUnboxedArray
   , unsafeNew
+  , clone
   , length
   , unsafePeek
   , unsafePoke
@@ -37,6 +38,7 @@ import Prelude
 
 class STUnboxedArray as a | as -> a where
   unsafeNew :: ∀ r e. Fn2 Int a (Eff (st :: ST r | e) (as r))
+  clone :: ∀ r e. Fn1 (as r) (Eff (st :: ST r | e) (as r))
   length :: ∀ r. Fn1 (as r) Int
   unsafePeek :: ∀ r e. Fn2 Int (as r) (Eff (st :: ST r | e) a)
   unsafePoke :: ∀ r e. Fn3 Int a (as r) (Eff (st :: ST r | e) Unit)
@@ -98,6 +100,9 @@ instance stUnboxedArraySTUnboxedArraySlice :: (STUnboxedArray as a) => STUnboxed
   unsafeNew = mkFn2 \length' value -> do
     array <- runFn2 unsafeNew length' value
     pure $ STUnboxedArraySlice 0 length' array
+  clone (STUnboxedArraySlice start length' base) = do
+    base' <- clone base
+    pure $ STUnboxedArraySlice start length' base'
   length (STUnboxedArraySlice _ length' _) =
     length'
   unsafePeek = mkFn2 \index (STUnboxedArraySlice start _ base) ->
@@ -112,11 +117,13 @@ foreign import data STUnboxedInt32Array :: Type -> Type
 
 instance stUnboxedArraySTUnboxedInt32Array :: STUnboxedArray STUnboxedInt32Array Int where
   unsafeNew = unsafeNewSTUnboxedInt32Array
+  clone = cloneSTUnboxedInt32Array
   length = lengthSTUnboxedInt32Array
   unsafePeek = unsafePeekSTUnboxedInt32Array
   unsafePoke = unsafePokeSTUnboxedInt32Array
 
 foreign import unsafeNewSTUnboxedInt32Array :: ∀ r e. Fn2 Int Int (Eff (st :: ST r | e) (STUnboxedInt32Array r))
+foreign import cloneSTUnboxedInt32Array :: ∀ r e. Fn1 (STUnboxedInt32Array r) (Eff (st :: ST r | e) (STUnboxedInt32Array r))
 foreign import lengthSTUnboxedInt32Array :: ∀ r. Fn1 (STUnboxedInt32Array r) Int
 foreign import unsafePeekSTUnboxedInt32Array :: ∀ r e. Fn2 Int (STUnboxedInt32Array r) (Eff (st :: ST r | e) Int)
 foreign import unsafePokeSTUnboxedInt32Array :: ∀ r e. Fn3 Int Int (STUnboxedInt32Array r) (Eff (st :: ST r | e) Unit)
@@ -128,11 +135,13 @@ foreign import data STUnboxedFloat64Array :: Type -> Type
 
 instance stUnboxedArraySTUnboxedFloat64Array :: STUnboxedArray STUnboxedFloat64Array Number where
   unsafeNew = unsafeNewSTUnboxedFloat64Array
+  clone = cloneSTUnboxedFloat64Array
   length = lengthSTUnboxedFloat64Array
   unsafePeek = unsafePeekSTUnboxedFloat64Array
   unsafePoke = unsafePokeSTUnboxedFloat64Array
 
 foreign import unsafeNewSTUnboxedFloat64Array :: ∀ r e. Fn2 Int Number (Eff (st :: ST r | e) (STUnboxedFloat64Array r))
+foreign import cloneSTUnboxedFloat64Array :: ∀ r e. Fn1 (STUnboxedFloat64Array r) (Eff (st :: ST r | e) (STUnboxedFloat64Array r))
 foreign import lengthSTUnboxedFloat64Array :: ∀ r. Fn1 (STUnboxedFloat64Array r) Int
 foreign import unsafePeekSTUnboxedFloat64Array :: ∀ r e. Fn2 Int (STUnboxedFloat64Array r) (Eff (st :: ST r | e) Number)
 foreign import unsafePokeSTUnboxedFloat64Array :: ∀ r e. Fn3 Int Number (STUnboxedFloat64Array r) (Eff (st :: ST r | e) Unit)
@@ -151,6 +160,9 @@ instance stUnboxedArraySTUnboxedComplex128Array :: STUnboxedArray STUnboxedCompl
       else do base <- runFn2 unsafeNew (length' * 2) real
               runFn3 fillImag length' imag base
               pure $ STUnboxedComplex128Array base
+  clone (STUnboxedComplex128Array base) = do
+    base' <- clone base
+    pure $ STUnboxedComplex128Array base'
   length (STUnboxedComplex128Array base) =
     length base / 2
   unsafePeek = mkFn2 \index (STUnboxedComplex128Array base) -> do
@@ -173,6 +185,10 @@ instance stUnboxedArraySTUnboxedTupleArray :: (STUnboxedArray as a, STUnboxedArr
     as <- runFn2 unsafeNew length' a
     bs <- runFn2 unsafeNew length' b
     pure $ STUnboxedTupleArray as bs
+  clone (STUnboxedTupleArray as bs) = do
+    as' <- clone as
+    bs' <- clone bs
+    pure $ STUnboxedTupleArray as' bs'
   length (STUnboxedTupleArray as _) =
     length as
   unsafePeek = mkFn2 \index (STUnboxedTupleArray as bs) -> do
